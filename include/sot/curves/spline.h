@@ -14,16 +14,46 @@
 // sot-curves. If not, see <http://www.gnu.org/licenses/>.
 
 
-#ifndef __SOT_BEZIERLINE_H__
-#define __SOT_BEZIERLINE_H__
+#ifndef __SOT_SPLINE_H__
+#define __SOT_SPLINE_H__
 # include <jrl/mal/boost.hh>
+namespace ml = maal::boost;
 
-namespace dynamicgraph {
-  namespace sot {
-    namespace curves {
-      void compute_bezier(maal::boost::Matrix Points, const float& time,  maal::boost::Vector & res);
-    }
+/* SOT */
+#include <sot/core/flags.hh>
+#include <dynamic-graph/entity.h>
+#include <dynamic-graph/pool.h>
+#include <dynamic-graph/signal-ptr.h>
+#include <dynamic-graph/signal-time-dependent.h>
+#include <sot/core/exception-dynamic.hh>
+#include <sot/core/matrix-homogeneous.hh>
+
+namespace dynamicgraph
+{
+  namespace sot
+  {
+    namespace dg = dynamicgraph;
+    class Spline
+  : public Entity
+{
+public:
+  static const std::string CLASS_NAME;
+  virtual const std::string& getClassName( void ) const { return CLASS_NAME; }
+  Spline(const std::string &);
+
+  dg::SignalPtr<double, int> tSIN;
+  dg::SignalTimeDependent<double, int> tSOUT;
+
+
+  double& compute(double& res, int time);
+
+
+
+};
+
+
   }
 }
+
 
 #endif
