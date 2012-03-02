@@ -39,8 +39,10 @@ FUNCTION(COMPILE_PLUGIN NAME SOURCES ENTITIES)
     )
 ENDFUNCTION()
 
+SET(SRCS bezier-line.cc bezier.cc)
 
-COMPILE_PLUGIN(bezier bezier.cc Bezier)
+
+COMPILE_PLUGIN(bezier ${SRCS} Bezier)
 
 
 # --- PY ---

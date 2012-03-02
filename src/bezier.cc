@@ -1,5 +1,4 @@
 #include <cmath>
-
 #include <time.h>
 #ifndef WIN32
 # include <sys/time.h>
