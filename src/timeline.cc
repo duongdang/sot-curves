@@ -31,6 +31,7 @@ namespace dynamicgraph
         count_(0),
         state_(STOP),
         period_(0.005),
+        reverse_(false),
         timeMaxSIN("sotTimeline("+name+")::int(double)::timeMax" ),
         triggerSOUT("sotTimeline("+name+")::output(double)::dummy" ),
         scaledTimeSOUT("sotTimeline("+name+")::output(double)::scaledTime")
@@ -54,16 +55,25 @@ namespace dynamicgraph
 
     int& Timeline::triggerCall( int& dummy, int timeCurr )
     {
+      double timeMax = timeMaxSIN(timeCurr);
+      int countMax = 1.0*timeMax/period_;
+
       if (state_ == START)
         {
-          count_ += 1;
+          count_ += (reverse_)? -1  : 1;
         }
-      double timeMax = timeMaxSIN(timeCurr);
-      double scaled_t = (double)(count_)*period_/timeMax;
-      if (scaled_t > 1)
+
+      if (count_ > countMax)
         {
-          scaled_t = 1;
+          count_ = countMax;
         }
+      else if (count_ < 0)
+        {
+          count_ = 0;
+        }
+
+      double scaled_t = (double)(count_)*period_/timeMax;
+
       scaledTimeSOUT.setConstant(scaled_t);
       scaledTimeSOUT.setTime(timeCurr);
       return dummy;
@@ -80,6 +90,8 @@ namespace dynamicgraph
     {
       if( statearg == "start" ){ state_ = START; }
       else if( statearg == "stop" ){ state_ = STOP; }
+      else if( statearg == "forward" ){ reverse_ = false; }
+      else if( statearg == "reverse" ){ reverse_ = true; }
     }
 
   }

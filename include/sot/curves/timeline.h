@@ -67,8 +67,9 @@ public:
   void setState(const std::string& statearg);
 
   State state_;
-  unsigned count_;
+  int count_;
   double period_;
+  bool reverse_;
 
 };
 
