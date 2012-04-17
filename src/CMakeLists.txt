@@ -41,6 +41,7 @@ ENDFUNCTION()
 
 
 COMPILE_PLUGIN(bezier bezier.cc Bezier)
+COMPILE_PLUGIN(nurb nurb.cc Nurb)
 COMPILE_PLUGIN(spline spline.cc Spline)
 COMPILE_PLUGIN(timeline timeline.cc Timeline)
 
