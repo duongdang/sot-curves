@@ -42,9 +42,11 @@ ENDFUNCTION()
 
 COMPILE_PLUGIN(bezier bezier.cc Bezier)
 COMPILE_PLUGIN(nurb nurb.cc Nurb)
+COMPILE_PLUGIN(interpolator interpolator.cc Interpolator)
 COMPILE_PLUGIN(spline spline.cc Spline)
 COMPILE_PLUGIN(timeline timeline.cc Timeline)
-
+TARGET_LINK_LIBRARIES(nurb openNURBS)
+TARGET_LINK_LIBRARIES(interpolator openNURBS)
 
 # --- PY ---
 # Install empty __init__.py files in intermediate directories.

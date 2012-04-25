@@ -16,6 +16,9 @@
 
 #include <dynamic-graph/entity.h>
 
+#include <openNURBS/opennurbs.h>
+
+
 namespace sot = dynamicgraph::sot;
 
 
@@ -35,7 +38,16 @@ namespace dynamicgraph
           {
             res(j) = m.elementAt(line_no, j);
           }
+      }
 
+      bool check_close(const ml::Vector& v1, const ml::Vector& v2)
+      {
+        static const double EPSILON = 1e-9;
+        if ( (v1.size() == 0) || (v1.size() != v2.size()) )
+          {
+            return false;
+          }
+        return (v1-v2).norm() < EPSILON;
       }
     }
 
@@ -43,54 +55,85 @@ namespace dynamicgraph
     DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(Nurb,"Nurb");
     Nurb::Nurb( const std::string & name )
       : Entity(name),
+        dimension_(3),       // dimension (degree)
+        bIsRational_(false), // true if rational
+        order_(4),           // order = degree+1
+        cv_count_(0),        // number of control vertices
+        on_curve_(new ON_NurbsCurve(dimension_, bIsRational_, order_, cv_count_)),
+        cv_(),
+        knots_(),
         tSIN(NULL,"sotNurb("+name+")::input(double)::t"),
-        controlPointsSIN(NULL,"sotNurb("+name+")::input(matrix)::controlPoints"),
+        cvSIN(NULL,"sotNurb("+name+")::input(vector)::cv"),
+        knotsSIN(NULL,"sotNurb("+name+")::input(vector)::knots"),
         stateSOUT( boost::bind(&Nurb::computeState,this,_1,_2),
-                   controlPointsSIN<<tSIN,
+                   cvSIN<<tSIN,
                    "sotNurb("+name+")::output(vector)::state" )
     {
       sotDEBUGIN(5);
-      signalRegistration( controlPointsSIN<<tSIN<<stateSOUT);
+      // on_curve_->SetKnot(0, 0.0);
+      // on_curve_->SetKnot(1, 0.0);
+      // on_curve_->SetKnot(2, 0.0);
+      // on_curve_->SetKnot(3, 1.0);
+      // on_curve_->SetKnot(4, 1.0);
+      // on_curve_->SetKnot(5, 1.0);
+      // //_curve_->SetKnot(6, 1.0);
+      // //_curve_->SetKnot(7, 1.0);
 
+      // on_curve_->SetCV(0, ON_3dPoint(0.,0.,0.));
+      // on_curve_->SetCV(1, ON_3dPoint(1.,2.,0.));
+      // on_curve_->SetCV(2, ON_3dPoint(4.,10.,0));
+      // on_curve_->SetCV(3, ON_3dPoint(6.,0.,0.));
+      // //_curve_->SetCV(4, ON_3dPoint(0.,0.,0.));
+      // //on_curve_->SetCV(5, ON_3dPoint(0.,0.,0.));
+      // for (unsigned i = 0; i < 1000; i++)
+      //   {
+      //     double t = 0.0 + 1.0/1000*i;
+      //     ON_3dPoint p = on_curve_->PointAt(t);
+      //     std::cout << t << " "<< p[0] << " "<< p[1] << " " << p[2] << std::endl;
+      //   }
+      //std::cout << on_curve_->CVCount() << " " << on_curve_->KnotCount();
+
+      signalRegistration( cvSIN<<knotsSIN<<tSIN<<stateSOUT);
       sotDEBUGOUT(5);
-    }
-
-
-    void Nurb::compute_nurb(ml::Matrix points,
-                                const double& t, ml::Vector& result)
-    {
-      result.resize(points.nbCols());
-
-      // Recursive formula
-      if (points.nbRows() == 1)
-        {
-        getLine(points, 0, result);
-        return;
-        }
-      ml::Vector B_0_n1, B_1_n;
-      ml::Matrix points_0_n1 = points.extract(0,0, (int)points.nbRows() - 1,
-                                              (int)points.nbCols());
-      ml::Matrix points_1_n = points.extract(1,0,
-                                             (int)points.nbRows() - 1,
-                                             (int)points.nbCols());
-      compute_nurb(points_0_n1, t, B_0_n1);
-      compute_nurb(points_1_n , t, B_1_n);
-      result = (1 - t)*B_0_n1 + t*B_1_n;
-      return;
     }
 
     ml::Vector& Nurb::computeState(ml::Vector& res, int time)
     {
-      ml::Matrix controlPoints = controlPointsSIN(time);
+      ml::Vector cv = cvSIN(time);
+      ml::Vector knots         = knotsSIN(time);
       const double t = tSIN(time);
-      compute_nurb(controlPoints,
-                     t, res);
+
+      // If cv or knots has changed, recreate the nurb_curve
+
+      if ( !( check_close(cv, cv_) && check_close(knots, knots_)) )
+        {
+          on_curve_->Destroy();
+          cv_count_ = cv.size()/3;
+          assert(knots.size() == cv_count_ + order_   - 2 );
+          on_curve_->Create(dimension_, bIsRational_, order_, cv_count_);
+
+          for (unsigned i = 0; i < knots.size(); i++)
+            {
+              on_curve_->SetKnot(i, knots(i) );
+              if (i < cv_count_)
+                {
+                  on_curve_->SetCV(i, ON_3dPoint(cv(3*i), cv(3*i+1), cv(3*i+2)) );
+                }
+            }
+
+
+        }
+      res.resize(3);
+      ON_3dPoint p = on_curve_->PointAt(t);
+
+      res(0) = p[0];
+      res(1) = p[1];
+      res(2) = p[2];
+
+      cv_ = cv;
+      knots_ = knots;
       return res;
-
     }
-
-
-
   }
 }
 

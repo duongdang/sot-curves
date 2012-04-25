@@ -14,8 +14,8 @@
 // sot-curves. If not, see <http://www.gnu.org/licenses/>.
 
 
-#ifndef __SOT_NURB_H__
-#define __SOT_NURB_H__
+#ifndef __SOT_INTERPOLATOR_H__
+#define __SOT_INTERPOLATOR_H__
 # include <jrl/mal/boost.hh>
 namespace ml = maal::boost;
 
@@ -34,35 +34,27 @@ namespace dynamicgraph
   namespace sot
   {
     namespace dg = dynamicgraph;
-    class Nurb
+    class Interpolator
   : public Entity
 {
  public:
   static const std::string CLASS_NAME;
   virtual const std::string& getClassName( void ) const { return CLASS_NAME; }
-  Nurb(const std::string &);
+  Interpolator(const std::string &);
 
-  dg::SignalPtr<double, int> tSIN;
-  dg::SignalPtr<ml::Vector, int> cvSIN;
-  dg::SignalPtr<ml::Vector, int> knotsSIN;
+  dg::SignalPtr<ml::Vector, int> stampsSIN;
+  dg::SignalPtr<ml::Vector, int> v0SIN;
+  dg::SignalPtr<ml::Vector, int> vnSIN;
+  dg::SignalPtr<ml::Vector, int> qsSIN;
 
-  dg::SignalTimeDependent<ml::Vector ,int> stateSOUT;
+  dg::SignalTimeDependent<ml::Vector ,int> uSOUT;
+  dg::SignalTimeDependent<ml::Vector ,int> psSOUT;
 
-  ml::Vector& computeState(ml::Vector& res, int time);
+  ml::Vector& compute_knots(ml::Vector& res, int time);
+  ml::Vector& compute_control_points(ml::Vector& res, int time);
 
-
-  void compute_nurb(maal::boost::Matrix Points, const double& t,
-                      maal::boost::Vector & res);
 
  private:
-  int dimension_;
-  ON_BOOL32 bIsRational_;
-  int order_;
-  int cv_count_;
-  ON_NurbsCurve* on_curve_;
-  ml::Vector cv_;
-  ml::Vector knots_;
-
 };
 
 
