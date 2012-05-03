@@ -65,48 +65,31 @@ namespace dynamicgraph
         tSIN(NULL,"sotNurb("+name+")::input(double)::t"),
         cvSIN(NULL,"sotNurb("+name+")::input(vector)::cv"),
         knotsSIN(NULL,"sotNurb("+name+")::input(vector)::knots"),
+        dimensionSIN(NULL,"sotNurb("+name+")::input(vector)::dimension"),
         stateSOUT( boost::bind(&Nurb::computeState,this,_1,_2),
                    cvSIN<<tSIN,
                    "sotNurb("+name+")::output(vector)::state" )
     {
       sotDEBUGIN(5);
-      // on_curve_->SetKnot(0, 0.0);
-      // on_curve_->SetKnot(1, 0.0);
-      // on_curve_->SetKnot(2, 0.0);
-      // on_curve_->SetKnot(3, 1.0);
-      // on_curve_->SetKnot(4, 1.0);
-      // on_curve_->SetKnot(5, 1.0);
-      // //_curve_->SetKnot(6, 1.0);
-      // //_curve_->SetKnot(7, 1.0);
-
-      // on_curve_->SetCV(0, ON_3dPoint(0.,0.,0.));
-      // on_curve_->SetCV(1, ON_3dPoint(1.,2.,0.));
-      // on_curve_->SetCV(2, ON_3dPoint(4.,10.,0));
-      // on_curve_->SetCV(3, ON_3dPoint(6.,0.,0.));
-      // //_curve_->SetCV(4, ON_3dPoint(0.,0.,0.));
-      // //on_curve_->SetCV(5, ON_3dPoint(0.,0.,0.));
-      // for (unsigned i = 0; i < 1000; i++)
-      //   {
-      //     double t = 0.0 + 1.0/1000*i;
-      //     ON_3dPoint p = on_curve_->PointAt(t);
-      //     std::cout << t << " "<< p[0] << " "<< p[1] << " " << p[2] << std::endl;
-      //   }
-      //std::cout << on_curve_->CVCount() << " " << on_curve_->KnotCount();
-
-      signalRegistration( cvSIN<<knotsSIN<<tSIN<<stateSOUT);
+      signalRegistration( cvSIN<<knotsSIN<<dimensionSIN<<tSIN<<stateSOUT);
       sotDEBUGOUT(5);
     }
 
     ml::Vector& Nurb::computeState(ml::Vector& res, int time)
     {
       ml::Vector cv = cvSIN(time);
-      ml::Vector knots         = knotsSIN(time);
+      ml::Vector knots = knotsSIN(time);
+      int dimension = dimensionSIN(time);
       const double t = tSIN(time);
 
       // If cv or knots has changed, recreate the nurb_curve
 
-      if ( !( check_close(cv, cv_) && check_close(knots, knots_)) )
+      if ( !( check_close(cv, cv_) && check_close(knots, knots_) &&
+              dimension == dimension_
+              ) )
         {
+          dimension_ = dimension;
+          order_ = dimension_ + 1;
           on_curve_->Destroy();
           cv_count_ = cv.size()/3;
           assert(knots.size() == cv_count_ + order_   - 2 );
@@ -120,8 +103,6 @@ namespace dynamicgraph
                   on_curve_->SetCV(i, ON_3dPoint(cv(3*i), cv(3*i+1), cv(3*i+2)) );
                 }
             }
-
-
         }
       res.resize(3);
       ON_3dPoint p = on_curve_->PointAt(t);

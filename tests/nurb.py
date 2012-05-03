@@ -5,10 +5,11 @@ n = Nurb('n')
 n.cv.value = (0,0,0,
               1,2,0,
               4,3,0,
-              6,0,0
+              # 6,0,0
               )
-n.knots.value = (0,0,0,1,1,1)
-
+#n.knots.value = (0,0,0,1,1,1)
+n.knots.value = (0,0,1,1)
+n.dimension.value = 2
 
 for i,t in enumerate(range(11)):
     n.t.value = t/10.0

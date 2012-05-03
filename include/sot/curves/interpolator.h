@@ -42,19 +42,28 @@ namespace dynamicgraph
   virtual const std::string& getClassName( void ) const { return CLASS_NAME; }
   Interpolator(const std::string &);
 
+  dg::SignalPtr<int, int> dimensionSIN;
   dg::SignalPtr<ml::Vector, int> stampsSIN;
   dg::SignalPtr<ml::Vector, int> v0SIN;
   dg::SignalPtr<ml::Vector, int> vnSIN;
   dg::SignalPtr<ml::Vector, int> qsSIN;
 
-  dg::SignalTimeDependent<ml::Vector ,int> uSOUT;
-  dg::SignalTimeDependent<ml::Vector ,int> psSOUT;
+  dg::SignalTimeDependent<ml::Vector ,int> knotsSOUT;
+  dg::SignalTimeDependent<ml::Vector ,int> cvSOUT;
 
   ml::Vector& compute_knots(ml::Vector& res, int time);
   ml::Vector& compute_control_points(ml::Vector& res, int time);
 
 
  private:
+  int dimension_;
+  ml::Vector stamps_;
+  ml::Vector v0_;
+  ml::Vector vn_;
+  ml::Vector qs_;
+  ml::Vector knots_;
+  ml::Vector normed_knots_;
+  ml::Vector cv_;
 };
 
 
