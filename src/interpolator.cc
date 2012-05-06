@@ -80,7 +80,7 @@ namespace dynamicgraph
           v0_ = v0;
           vn_ = vn;
           qs_ = qs;
-
+          normed_knots_ = knots_*(knots_(knots_.size()) - knots_(0));
           assert( 3*stamps.size() == qs.size() );
         }
       return res;
