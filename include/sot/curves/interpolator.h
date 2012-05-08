@@ -56,6 +56,8 @@ namespace dynamicgraph
 
 
  private:
+  void update(int time);
+
   int dimension_;
   ml::Vector stamps_;
   ml::Vector v0_;

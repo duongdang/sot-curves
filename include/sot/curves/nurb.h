@@ -45,7 +45,7 @@ namespace dynamicgraph
   dg::SignalPtr<double, int> tSIN;
   dg::SignalPtr<ml::Vector, int> cvSIN;
   dg::SignalPtr<ml::Vector, int> knotsSIN;
-  dg::SignalPtr<int, int> dimensionSIN;
+  dg::SignalPtr<int, int> degreeSIN;
 
   dg::SignalTimeDependent<ml::Vector ,int> stateSOUT;
   ml::Vector& computeState(ml::Vector& res, int time);
@@ -57,6 +57,7 @@ namespace dynamicgraph
  private:
   int dimension_;
   ON_BOOL32 bIsRational_;
+  int degree_;
   int order_;
   int cv_count_;
   ON_NurbsCurve* on_curve_;

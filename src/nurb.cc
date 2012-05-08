@@ -55,8 +55,9 @@ namespace dynamicgraph
     DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(Nurb,"Nurb");
     Nurb::Nurb( const std::string & name )
       : Entity(name),
-        dimension_(3),       // dimension (degree)
+        dimension_(3),       // dimension 1, 2 or 3
         bIsRational_(false), // true if rational
+        degree_(3),          //
         order_(4),           // order = degree+1
         cv_count_(0),        // number of control vertices
         on_curve_(new ON_NurbsCurve(dimension_, bIsRational_, order_, cv_count_)),
@@ -65,13 +66,13 @@ namespace dynamicgraph
         tSIN(NULL,"sotNurb("+name+")::input(double)::t"),
         cvSIN(NULL,"sotNurb("+name+")::input(vector)::cv"),
         knotsSIN(NULL,"sotNurb("+name+")::input(vector)::knots"),
-        dimensionSIN(NULL,"sotNurb("+name+")::input(vector)::dimension"),
+        degreeSIN(NULL,"sotNurb("+name+")::input(vector)::degree"),
         stateSOUT( boost::bind(&Nurb::computeState,this,_1,_2),
                    cvSIN<<tSIN,
                    "sotNurb("+name+")::output(vector)::state" )
     {
       sotDEBUGIN(5);
-      signalRegistration( cvSIN<<knotsSIN<<dimensionSIN<<tSIN<<stateSOUT);
+      signalRegistration( cvSIN<<knotsSIN<<degreeSIN<<tSIN<<stateSOUT);
       sotDEBUGOUT(5);
     }
 
@@ -79,25 +80,27 @@ namespace dynamicgraph
     {
       ml::Vector cv = cvSIN(time);
       ml::Vector knots = knotsSIN(time);
-      int dimension = dimensionSIN(time);
+      int degree = degreeSIN(time);
       const double t = tSIN(time);
-
+      // m + 1 == n + 1 + p + 1
+      assert(knots.size() == cv.size()/3 + degree  + 1);
       // If cv or knots has changed, recreate the nurb_curve
 
       if ( !( check_close(cv, cv_) && check_close(knots, knots_) &&
-              dimension == dimension_
+              degree == degree_
               ) )
         {
-          dimension_ = dimension;
-          order_ = dimension_ + 1;
+          degree_ = degree;
+          order_ = degree_ + 1;
           on_curve_->Destroy();
           cv_count_ = cv.size()/3;
-          assert(knots.size() == cv_count_ + order_   - 2 );
-          on_curve_->Create(dimension_, bIsRational_, order_, cv_count_);
+          // opennurbs does not count the first and the last knot
+          on_curve_->Create(dimension_, bIsRational_, order_,
+                            cv_count_);
 
-          for (unsigned i = 0; i < knots.size(); i++)
+          for (unsigned i = 1; i < knots.size() - 1; i++)
             {
-              on_curve_->SetKnot(i, knots(i) );
+              on_curve_->SetKnot(i-1, knots(i) );
               if (i < cv_count_)
                 {
                   on_curve_->SetCV(i, ON_3dPoint(cv(3*i), cv(3*i+1), cv(3*i+2)) );
