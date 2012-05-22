@@ -34,13 +34,14 @@ namespace dynamicgraph
         reverse_(false),
         timeMaxSIN("sotTimeline("+name+")::int(double)::timeMax" ),
         triggerSOUT("sotTimeline("+name+")::output(double)::dummy" ),
-        scaledTimeSOUT("sotTimeline("+name+")::output(double)::scaledTime")
+        scaledTimeSOUT("sotTimeline("+name+")::output(double)::scaledTime"),
+        timeSOUT("sotTimeline("+name+")::output(double)::time")
     {
       sotDEBUGIN(5);
       triggerSOUT.setFunction(boost::bind(&Timeline::triggerCall,this,_1,_2));
       //scaledTimeSOUT.setFunction(boost::bind(&Timeline::compute,this,_1,_2));
 
-      signalRegistration(timeMaxSIN<<scaledTimeSOUT<<triggerSOUT);
+      signalRegistration(timeMaxSIN<<scaledTimeSOUT<<timeSOUT<<triggerSOUT);
       sotDEBUGOUT(5);
 
       using namespace command;
@@ -72,10 +73,13 @@ namespace dynamicgraph
           count_ = 0;
         }
 
-      double scaled_t = (double)(count_)*period_/timeMax;
+      double time = (double)(count_)*period_;
+      double scaled_t = time/timeMax;
 
       scaledTimeSOUT.setConstant(scaled_t);
       scaledTimeSOUT.setTime(timeCurr);
+      timeSOUT.setConstant(time);
+      timeSOUT.setTime(timeCurr);
       return dummy;
     }
 

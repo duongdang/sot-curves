@@ -54,6 +54,7 @@ public:
 
   Signal< double,int > timeMaxSIN;
   Signal< double,int > scaledTimeSOUT;
+  Signal< double,int > timeSOUT;
 
 
  private:
