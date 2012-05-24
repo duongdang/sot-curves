@@ -94,13 +94,16 @@ namespace dynamicgraph
           order_ = degree_ + 1;
           on_curve_->Destroy();
           cv_count_ = cv.size()/3;
-          // opennurbs does not count the first and the last knot
           on_curve_->Create(dimension_, bIsRational_, order_,
                             cv_count_);
 
-          for (unsigned i = 1; i < knots.size() - 1; i++)
+          for (unsigned i = 0; i < knots.size(); i++)
             {
-              on_curve_->SetKnot(i-1, knots(i) );
+	      // opennurbs does not count the first and the last knot
+	      if (i > 0 && i < knots.size() -1 )
+		{
+		  on_curve_->SetKnot(i-1, knots(i) );
+		}
               if (i < cv_count_)
                 {
                   on_curve_->SetCV(i, ON_3dPoint(cv(3*i), cv(3*i+1), cv(3*i+2)) );
